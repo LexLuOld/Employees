@@ -4,9 +4,8 @@ namespace Employees.Helpers
 {
     public static class Util
     {
-        public static string AskForString(string prompt, IUI ui)
+        public static string AskForString(string prompt, IUI ui, Func<string, bool>? validate = null)
         {
-            bool success = false;
             string answer;
 
             do
@@ -16,31 +15,29 @@ namespace Employees.Helpers
 
                 if (string.IsNullOrWhiteSpace(answer))
                 {
-                   ui.Print($"You must enter a valid {prompt}");
+                    ui.Print($"You must enter a valid {prompt}");
+                    continue;
                 }
-                else
+
+                if (validate != null && !validate(answer))
                 {
-                    success = true;
+                    ui.Print($"Invalid input for {prompt}");
+                    continue;
                 }
 
+                return answer;
 
-            } while (!success);
-
-            return answer;
+            } while (true);
         }
 
         public static uint AskForUInt(string prompt, IUI ui)
         {
-            do
-            {
-                string input = AskForString(prompt, ui);
-
-                if(uint.TryParse(input, out uint result))
-                {
-                    return result;
-                }
-
-            } while (true);
+            return uint.Parse(AskForString(
+                prompt,
+                ui,
+                input => uint.TryParse(input, out _)
+            ));
         }
     }
+
 }
